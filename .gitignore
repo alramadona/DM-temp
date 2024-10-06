@@ -10,6 +10,7 @@
 
 # Example code in package build process
 *-Ex.R
+GH.R
 
 # Output files from R CMD build
 /*.tar.gz
