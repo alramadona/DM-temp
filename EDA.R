@@ -14,11 +14,13 @@ library(ggpubr)
 library(zoo)
 
 # dataset
-fktpkapitasi <- read_dta("dat/DM2021_fktpkapitasi.dta") # dataset can be obtained through https://data.bpjs-kesehatan.go.id
+## BPJS dataset can be obtained through https://data.bpjs-kesehatan.go.id
+
+fktpkapitasi <- read_dta("dat/master/DM2021_fktpkapitasi.dta") 
 fktpkapitasi_DIY <- subset(fktpkapitasi, FKP05==34) # "34" is the area code for Yogyakarta Province 
 fktpkapitasi_DIY$FKP03 <- as.Date(fktpkapitasi_DIY$FKP03, format="%Y-%m-%d")
 
-fkrtl <- read_dta("dat/DM2021_fkrtl.dta") # dataset can be obtained through https://data.bpjs-kesehatan.go.id
+fkrtl <- read_dta("dat/master/DM2021_fkrtl.dta")
 fkrtl_DIY <- subset(fkrtl, FKL05==34) # "34" is the area code for Yogyakarta Province 
 fkrtl_DIY$FKL03 <- as.Date(fkrtl_DIY$FKL03, format="%Y-%m-%d")
 
@@ -26,28 +28,29 @@ rm(fktpkapitasi)
 rm(fkrtl)
 gc()
 
-dat_BMKG <- read.csv("dat/BMKG_GeofisikaSleman_2021.csv", na.strings="#NA", sep=";") # dataset can be obtained through https://dataonline.bmkg.go.id/home?language=english
+## BMKG dataset can be obtained through https://dataonline.bmkg.go.id
+dat_BMKG <- read.csv("dat/master/BMKG_GeofisikaSleman_2021.csv", na.strings="#NA", sep=";")
 dat_BMKG$date <- as.Date(dat_BMKG$date, format="%d-%m-%Y")
 
 fktpkapitasi_daily <- fktpkapitasi_DIY %>%
   group_by(FKP03) %>%
   summarise(n_fktp = n())
 
-fktpkapitasi_daily$DoY <- wday(fktpkapitasi_daily$FKP03)
+fktpkapitasi_daily$DoW <- wday(fktpkapitasi_daily$FKP03)
 
 fkrtl_daily <- fkrtl_DIY %>%
   group_by(FKL03) %>%
   summarise(n_fkrtl = n())
 
-fkrtl_daily$DoY <- wday(fkrtl_daily$FKL03)
+fkrtl_daily$DoW <- wday(fkrtl_daily$FKL03)
 
-p1 <- ggplot(fktpkapitasi_daily, aes(x = as.factor(DoY), y = n_fktp)) +
-  geom_boxplot() + theme_bw() + ylim(0, 210) +
+p1 <- ggplot(fktpkapitasi_daily, aes(x = as.factor(DoW), y = n_fktp)) +
+  geom_boxplot() + theme_bw() + ylim(0, 225) +
   labs(title = "primary care", subtitle = "", x="", y="") +
   scale_x_discrete(labels=c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'))
 
-p2 <- ggplot(fkrtl_daily, aes(x = as.factor(DoY), y = n_fkrtl)) +
-  geom_boxplot() + theme_bw() + ylim(0, 210) +
+p2 <- ggplot(fkrtl_daily, aes(x = as.factor(DoW), y = n_fkrtl)) +
+  geom_boxplot() + theme_bw() + ylim(0, 225) +
   labs(title = "referral care", subtitle = "", x="", y="") +
   scale_x_discrete(labels=c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'))
 
@@ -57,19 +60,19 @@ ggarrange(p1, p2,
           ncol = 2, nrow = 1)
 
 fktpkapitasi_daily %>%
-  group_by(DoY) %>%
+  group_by(DoW) %>%
   summarise(mean_fktp = mean(n_fktp),
             sd_fktp = sd(n_fktp))
 
 fkrtl_daily %>%
-  group_by(DoY) %>%
+  group_by(DoW) %>%
   summarise(mean_fkrtl = mean(n_fkrtl),
             sd_fkrtl = sd(n_fkrtl))
 
-names(fktpkapitasi_daily) <- c("date", "n_fktp", "DoY")
-names(fkrtl_daily) <- c("date", "n_fkrtl", "DoY")
+names(fktpkapitasi_daily) <- c("date", "n_fktp", "DoW")
+names(fkrtl_daily) <- c("date", "n_fkrtl", "DoW")
 
-fkrtl_daily$DoY <- NULL
+fkrtl_daily$DoW <- NULL
 
 str(dat_BMKG)
 
@@ -78,7 +81,7 @@ dat <- merge(dat, fkrtl_daily, by=c("date"), all.x=T)
 dat$T_diu <- dat$Tx - dat$Tn
 
 dat$epiweek <- epiweek(dat$date)
-dat$DoY <- wday(dat$date)
+dat$DoW <- wday(dat$date)
 dat$YM <- as.yearmon(dat$date)
 
 dat$Tavg_lag00 <- dat$Tavg
@@ -97,7 +100,7 @@ dat$Tavg_lag12 <- lag(dat$Tavg, 12)
 dat$Tavg_lag13 <- lag(dat$Tavg, 13)
 dat$Tavg_lag14 <- lag(dat$Tavg, 14)
 
-datNholidays <- filter(dat, DoY != 1)
+datNholidays <- filter(dat, DoW != 1)
 
 datNholidays <- filter(datNholidays, date != as.Date("2021-01-01", format="%Y-%m-%d"))
 datNholidays <- filter(datNholidays, date != as.Date("2021-01-02", format="%Y-%m-%d")) ## w53 2020
@@ -276,7 +279,7 @@ p.mat.dat$lower <- as.numeric(as.character(p.mat.dat$lower))
 p.mat.dat$upper <- as.numeric(as.character(p.mat.dat$upper))
 p.mat.dat$p.value <- as.numeric(as.character(p.mat.dat$p.value))
 
-# write.csv(p.mat.dat, "p.mat.dat.csv")
+# write.csv(p.mat.dat, "dat/p.mat.dat.csv")
 
 p1 <- p.mat.dat %>% filter(dataset == "fktp") %>% 
   ggplot(aes(x = lag, y = estimate, col= p.value.cat)) +
@@ -345,7 +348,7 @@ p.mat.dat$p.value <- as.numeric(as.character(p.mat.dat$p.value))
 p.mat.dat$p.value.cat[2] <- "sig"
 p.mat.dat$p.value.cat[27] <- "sig"
 
-# write.csv(p.mat.dat, "p.mat.dat_noHoliday.csv")
+# write.csv(p.mat.dat, "dat/p.mat.dat_noHoliday.csv")
 
 p3 <- p.mat.dat %>% filter(dataset == "fktp") %>% 
   ggplot(aes(x = lag, y = estimate, col= p.value.cat)) +
@@ -430,7 +433,7 @@ p6 <- p.mat.dat %>% filter(dataset == "fkrtl") %>%
   labs(title = "referral care", subtitle = "lag 0-8 week", x="", y="") +
   scale_x_continuous(breaks=seq(0,8,1))
 
-# write.csv(p.mat.dat, "p.mat.datW.csv")
+# write.csv(p.mat.dat, "dat/p.mat.datW.csv")
 
 ##
 names(datWNholidays)
@@ -483,7 +486,7 @@ p.mat.dat$lower <- as.numeric(as.character(p.mat.dat$lower))
 p.mat.dat$upper <- as.numeric(as.character(p.mat.dat$upper))
 p.mat.dat$p.value <- as.numeric(as.character(p.mat.dat$p.value))
 
-# write.csv(p.mat.dat, "p.mat.datW_noHolidays.csv")
+# write.csv(p.mat.dat, "dat/p.mat.datW_noHolidays.csv")
 
 p7 <- p.mat.dat %>% filter(dataset == "fktp") %>% 
   ggplot(aes(x = lag, y = estimate, col= p.value.cat)) +
@@ -508,8 +511,8 @@ ggarrange(p1, p2, p3, p4, p5, p6, p7, p8,
 
 ##
 
-# dt <- dat
-dt <- datNholidays
+dt <- dat
+# dt <- datNholidays
 
 dt$group <- factor(dt$m,
                     levels=c(1:12))
@@ -605,7 +608,7 @@ datW$phat_fktp <- predict(m1, type="response")
 # write.csv(datW, "datW.csv")
 
 ## create the plot
-datW_plot <- read.csv("dat/datW_long.csv")
+datW_plot <- read.csv("dat/master/datW_long.csv")
 p1 <- ggplot(datW_plot, aes(x=Tavg, y=predict, colour=healthcare)) +
   geom_point(aes(y=n), alpha=.5, position=position_jitter(h=.2)) +
   geom_line(size = 1) +
@@ -632,7 +635,7 @@ datM$phat_fkrtl <- predict(m1, type="response")
 # write.csv(datM, "datM.csv")
 
 ## create the plot
-datM_plot <- read.csv("dat/datM_long.csv")
+datM_plot <- read.csv("dat/master/datM_long.csv")
 
 # figure 5
 p2 <- ggplot(datM_plot, aes(x=Tavg, y=predict, colour=healthcare)) +
