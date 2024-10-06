@@ -10,6 +10,8 @@
 
 # Example code in package build process
 *-Ex.R
+
+# Files
 GH.R
 *.Rproj
 
@@ -41,4 +43,6 @@ vignettes/*.pdf
 .Renviron
 
 # Dataset
-/dat
+BMKG_GeofisikaSleman_2021.csv
+DM2021_fkrtl.dta
+DM2021_fktpkapitasi.dta
