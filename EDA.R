@@ -14,11 +14,11 @@ library(ggpubr)
 library(zoo)
 
 # dataset
-fktpkapitasi <- read_dta("dat/DM2021_fktpkapitasi.dta") # dataset can be obtained through https://data.bpjs-kesehatan.go.id/bpjs-portal/action/form-datasample.cbi
+fktpkapitasi <- read_dta("dat/DM2021_fktpkapitasi.dta") # dataset can be obtained through https://data.bpjs-kesehatan.go.id
 fktpkapitasi_DIY <- subset(fktpkapitasi, FKP05==34) # "34" is the area code for Yogyakarta Province 
 fktpkapitasi_DIY$FKP03 <- as.Date(fktpkapitasi_DIY$FKP03, format="%Y-%m-%d")
 
-fkrtl <- read_dta("dat/DM2021_fkrtl.dta") # dataset can be obtained through https://data.bpjs-kesehatan.go.id/bpjs-portal/action/form-datasample.cbi
+fkrtl <- read_dta("dat/DM2021_fkrtl.dta") # dataset can be obtained through https://data.bpjs-kesehatan.go.id
 fkrtl_DIY <- subset(fkrtl, FKL05==34) # "34" is the area code for Yogyakarta Province 
 fkrtl_DIY$FKL03 <- as.Date(fkrtl_DIY$FKL03, format="%Y-%m-%d")
 
